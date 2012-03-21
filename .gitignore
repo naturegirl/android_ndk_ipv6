@@ -1,0 +1,17 @@
+# generated files
+bin/
+gen/
+
+# local configuration file
+local.properties
+
+# application files
+*.apk
+*.ap_
+
+*.dex
+
+.metadata
+.settings/
+.classpath
+
