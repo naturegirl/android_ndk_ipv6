@@ -15,29 +15,58 @@
  */
 package com.example.hellojni;
 
-import android.app.Activity;
+import java.util.StringTokenizer;
+
+
+import android.app.ListActivity;
+import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
-import android.widget.TextView;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import android.widget.AdapterView.OnItemClickListener;
 
 
-public class HelloJni extends Activity
+public class HelloJni extends ListActivity
 {
+    private String []interfaces;		// name of the interfaces
+    private String []v6addr;			// name of the v6 addresses in interface, one per interface
+    
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
 
-        /* Create a TextView and set its content.
-         * the text is retrieved by calling a native
-         * function.
-         */
-        TextView  tv = new TextView(this);
-        tv.setText( stringFromJNI() );
-        Log.d("mee", "wtf");
-        setContentView(tv);
+        String test = getString(R.string.test);
+        StringTokenizer st = new StringTokenizer(test,";");
+        interfaces = new String[st.countTokens()];
+        v6addr = new String[st.countTokens()];
+        
+        int i = 0;
+        while(st.hasMoreTokens()) {
+        	String s = st.nextToken();
+        	StringTokenizer st2 = new StringTokenizer(s, ":");
+        	interfaces[i] = st2.nextToken();
+        	v6addr[i] = st2.nextToken();
+        	i++;
+        }
+        //setContentView(R.layout.main);
+        setListAdapter(new ArrayAdapter<String>(this, R.layout.list_item, interfaces));
+        
+        ListView lv = getListView();
+        lv.setOnItemClickListener(new OnItemClickListener() {
+    	    public void onItemClick(AdapterView<?> parent, View view,
+    	        int position, long id) {
+    	      // When clicked, show a toast with the TextView text
+    	      Intent intent = new Intent(HelloJni.this, NDK_InterfaceDetail.class);
+    	      intent.putExtra("ipv6 addr", v6addr[position]);
+    	      startActivity(intent);
+    	    }
+    	  });
     }
+
 
     /* A native method that is implemented by the
      * 'hello-jni' native library, which is packaged
