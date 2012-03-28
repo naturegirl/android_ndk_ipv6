@@ -48,6 +48,7 @@
  *
  *   apps/samples/hello-jni/project/src/com/example/HelloJni/HelloJni.java
  */
+ // call fileExists() first!
 jstring
 Java_com_example_hellojni_HelloJni_stringFromJNI( JNIEnv* env,
                                                   jobject thiz )
@@ -61,10 +62,29 @@ Java_com_example_hellojni_HelloJni_stringFromJNI( JNIEnv* env,
     return (*env)->NewStringUTF(env, buf);
 }
 
+#define IF_INET6 "/proc/net/if_inet6"
+
+// for jboolean 1 is true, 0 is false
+jboolean
+Java_com_example_hellojni_HelloJni_fileExists( JNIEnv* env, jobject thiz )
+{
+	FILE *fp;
+	int val;
+	if (NULL == (fp = fopen(IF_INET6, "r"))) {		// can open
+		val = 0;
+		__android_log_write(ANDROID_LOG_DEBUG, "mee", "can't read. fopen failed");
+	}
+	else {
+		val = 1;
+		fclose(fp);
+	}
+	
+	return val;
+}
 
 int get_ipv6addr(struct in6_addr *addr6, char returnbuf[])
 {
-#define IF_INET6 "/proc/net/if_inet6"
+
 	char buf[256];
     char str[128], address[64];
     char *addr, *index, *prefix, *scope, *flags, *name;

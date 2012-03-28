@@ -18,7 +18,9 @@ package com.example.hellojni;
 import java.util.StringTokenizer;
 
 
+import android.app.AlertDialog;
 import android.app.ListActivity;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -39,7 +41,20 @@ public class HelloJni extends ListActivity
     {
         super.onCreate(savedInstanceState);
 
-        //String test = getString(R.string.test);
+        if (!fileExists()) {
+    		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    		builder.setMessage("This device does not seem to support ipv6. Exiting...")
+    		       .setCancelable(false)
+    		       .setNeutralButton("OK", new DialogInterface.OnClickListener() {
+    		           public void onClick(DialogInterface dialog, int id) {
+    		                HelloJni.this.finish();
+    		           }
+    		       });
+    		AlertDialog alert = builder.create();
+    		alert.show();
+    		return;
+        }
+        
         String test = stringFromJNI();
         StringTokenizer st = new StringTokenizer(test,";");
         interfaces = new String[st.countTokens()];
@@ -74,18 +89,8 @@ public class HelloJni extends ListActivity
      * with this application.
      */
     public native String  stringFromJNI();
-
-    /* This is another native method declaration that is *not*
-     * implemented by 'hello-jni'. This is simply to show that
-     * you can declare as many native methods in your Java code
-     * as you want, their implementation is searched in the
-     * currently loaded native libraries only the first time
-     * you call them.
-     *
-     * Trying to call this function will result in a
-     * java.lang.UnsatisfiedLinkError exception !
-     */
-    public native String  unimplementedStringFromJNI();
+    
+    public native boolean fileExists();
 
     /* this is used to load the 'hello-jni' library on application
      * startup. The library has already been unpacked into

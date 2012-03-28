@@ -15,3 +15,6 @@ local.properties
 .settings/
 .classpath
 
+# library files
+*.so
+*.o
