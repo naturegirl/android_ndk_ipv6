@@ -39,7 +39,8 @@ public class HelloJni extends ListActivity
     {
         super.onCreate(savedInstanceState);
 
-        String test = getString(R.string.test);
+        //String test = getString(R.string.test);
+        String test = stringFromJNI();
         StringTokenizer st = new StringTokenizer(test,";");
         interfaces = new String[st.countTokens()];
         v6addr = new String[st.countTokens()];

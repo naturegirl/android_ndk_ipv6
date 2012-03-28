@@ -55,14 +55,14 @@ Java_com_example_hellojni_HelloJni_stringFromJNI( JNIEnv* env,
     struct in6_addr addr6;
     char *ifname = "eth0";
     char address[64];
-    
+    char buf[1024];
 	__android_log_write(ANDROID_LOG_DEBUG, "mee", "just here");
-    get_linklocal_ipv6addr(&addr6, ifname);
-    return (*env)->NewStringUTF(env, "Hello World. change change!!");
+    get_ipv6addr(&addr6, buf);
+    return (*env)->NewStringUTF(env, buf);
 }
 
 
-int get_linklocal_ipv6addr(struct in6_addr *addr6, char *iface)
+int get_ipv6addr(struct in6_addr *addr6, char returnbuf[])
 {
 #define IF_INET6 "/proc/net/if_inet6"
 	char buf[256];
@@ -72,19 +72,17 @@ int get_linklocal_ipv6addr(struct in6_addr *addr6, char *iface)
     FILE *fp;
     int count;
     
-    if (!addr6 || !iface) {
-        ER("addr6 and iface can't be NULL!\n");
+    if (!addr6) {
+        __android_log_write(ANDROID_LOG_ERROR, "mee", "addr6 and iface can't be NULL!\n");
         return -1;
     }
     
     if (NULL == (fp = fopen(IF_INET6, "r"))) {
-        ER("");
 		__android_log_write(ANDROID_LOG_ERROR, "mee", "can't read. fopen failed");
         perror("fopen error");
         return -1;
     }
     
-#define IPV6_ADDR_LINKLOCAL 0x0000U
     while (fgets(str, sizeof(str), fp)) {
         DG("str:%s", str);
         addr = strtok(str, delim);
@@ -95,16 +93,7 @@ int get_linklocal_ipv6addr(struct in6_addr *addr6, char *iface)
         name = strtok(NULL, delim);
 		sprintf(buf, "addr:%s, index:0x%s, prefix:0x%s, scope:0x%s, flags:0x%s, name:%s\n",
            addr, index, prefix, scope, flags, name);
-		__android_log_write(ANDROID_LOG_DEBUG, "mee", buf);
-        DG("addr:%s, index:0x%s, prefix:0x%s, scope:0x%s, flags:0x%s, name:%s\n",
-           addr, index, prefix, scope, flags, name);
-        
-//        if (strcmp(name, iface))
-//            continue;
-        
-        /* Just get IPv6 linklocal address */
-        if (IPV6_ADDR_LINKLOCAL != (unsigned int)strtoul(scope, NULL, 16))
-            continue;
+		//__android_log_write(ANDROID_LOG_DEBUG, "mee", buf);
         
         memset(address, 0x00, sizeof(address));
         p = addr;
@@ -118,13 +107,13 @@ int get_linklocal_ipv6addr(struct in6_addr *addr6, char *iface)
             *q++ = *p++;
             count++;
         }
-		sprintf(buf,"find out %s's linklocal IPv6 address: %s\n", iface, address);
-		__android_log_write(ANDROID_LOG_DEBUG, "mee", buf);
-        DG("find out %s's linklocal IPv6 address: %s\n", iface, address);
+		sprintf(buf, "%s:%s;", name, addr);		// this is the required format
+		strcat(returnbuf, buf);
+		//__android_log_write(ANDROID_LOG_DEBUG, "mee", buf);
         
         inet_pton(AF_INET6, address, addr6);
-        break;
     }
+	__android_log_write(ANDROID_LOG_INFO, "mee", returnbuf);
 #undef IPV6_ADDR_LINKLOCAL
     
     fclose(fp);
